@@ -1,6 +1,6 @@
 [package]
 name = "safe-graph"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Dalibor Matura <dalibor.matura@gmail.com>"]
 edition = "2018"
 description = "Graph implementation, as a refactored version of GraphMap from popular crate petgraph."
@@ -9,6 +9,10 @@ license = "GPL-3.0"
 readme = "README.md"
 repository = "https://github.com/dalibor-matura/safe-graph"
 keywords = ["safe", "graph", "petgraph", "GraphMap"]
+
+[badges]
+travis-ci = { repository = "dalibor-matura/safe-graph", branch = "master" }
+codecov = { repository = "dalibor-matura/safe-graph", branch = "master", service = "github" }
 
 [dependencies]
 indexmap = "1.0.2"

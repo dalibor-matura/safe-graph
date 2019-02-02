@@ -1,0 +1,40 @@
+language: rust
+sudo: true
+rust:
+  - stable
+  - nightly
+matrix:
+  allow_failures:
+    - rust: nightly
+os:
+  - linux
+  - osx
+cache: cargo
+env:
+  global:
+    - PATH=$PATH:$HOME/.cargo/bin
+    - RUST_BACKTRACE=1
+addons:
+  apt:
+    packages:
+      - libssl-dev
+before_cache:
+  - cargo prune
+  - |
+    if [[ "$TRAVIS_RUST_VERSION" == nightly ]]; then
+      RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin -f
+    fi
+before_script:
+  - |
+    (which cargo-install-update && cargo install-update cargo-update) || cargo install cargo-update &&
+    (which cargo-prune && cargo install-update cargo-prune) || cargo install cargo-prune
+script:
+  - cargo clean
+  - cargo build
+  - cargo test
+after_success: |
+  if [[ "$TRAVIS_RUST_VERSION" == nightly ]]; then
+    # Get coverage report and upload it for codecov.io.
+    cargo tarpaulin --out Xml
+    bash <(curl -s https://codecov.io/bash)
+  fi
