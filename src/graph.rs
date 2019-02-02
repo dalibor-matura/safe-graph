@@ -77,10 +77,6 @@ where
     /// use safe_graph::Graph;
     ///
     /// let graph: Graph<i32, f32> = Graph::new();
-    ///
-    /// // Test nodes and edges count immediately after graph creation.
-    /// assert_eq!(graph.node_count(), 0);
-    /// assert_eq!(graph.edge_count(), 0);
     /// ```
     pub fn new() -> Self {
         Self::default()
