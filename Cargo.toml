@@ -4,6 +4,7 @@ version = "0.1.2"
 authors = ["Dalibor Matura <dalibor.matura@gmail.com>"]
 edition = "2018"
 description = "Graph implementation, as a refactored version of GraphMap from popular crate petgraph."
+documentation = "https://docs.rs/safe-graph"
 homepage = "https://github.com/dalibor-matura/safe-graph"
 license = "GPL-3.0"
 readme = "README.md"
