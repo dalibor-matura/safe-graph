@@ -2,6 +2,10 @@
 
 Rust implementation of Graph, being refactored version of `GraphMap` from popular [petgraph](https://crates.io/crates/petgraph) crate.
 
+|Crate|Documentation|Travis CI|CodeCov|
+|:---:|:-----------:|:-------:|:-----:|
+|[![Crate](http://meritbadge.herokuapp.com/safe-graph)](https://crates.io/crates/safe-graph)|[![Documentation](https://docs.rs/safe-graph/badge.svg)](https://docs.rs/safe-graph)|[![Build Status](https://travis-ci.org/dalibor-matura/safe-graph.svg?branch=master)](https://travis-ci.org/dalibor-matura/safe-graph)|[![codecov](https://codecov.io/gh/dalibor-matura/safe-graph/branch/master/graph/badge.svg)](https://codecov.io/gh/dalibor-matura/safe-graph)
+
 ## Refactoring done
 
 I’ve decided to start refactoring of [petgraph](https://crates.io/crates/petgraph) crate for couple of reasons:
@@ -17,4 +21,4 @@ I’ve decided to start refactoring of [petgraph](https://crates.io/crates/petgr
 * I'm thinking about refactoring of [Petgraph](https://crates.io/crates/petgraph) into more modular collection of smaller Graph libraries with better Test Coverage and more structured separation of functionality.
 
 ## License
-Licensed under the General Public License (GPL), version 3 ([LICENSE](https://github.com/dalibor-matura/xor-distance-exercise/blob/master/LICENSE) http://www.gnu.org/licenses/gpl-3.0.en.html).
+Licensed under the General Public License (GPL), version 3 ([LICENSE](https://github.com/dalibor-matura/safe-graph/blob/master/LICENSE) http://www.gnu.org/licenses/gpl-3.0.en.html).
