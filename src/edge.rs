@@ -1,8 +1,8 @@
 //! Graph Edge related constructs.
 
 use self::Direction::{Incoming, Outgoing};
-use crate::node::NodeTrait;
 use crate::graph::{Directed, Graph, Undirected};
+use crate::node::NodeTrait;
 use crate::traverse::Neighbors;
 use indexmap::map::Iter as IndexMapIter;
 use indexmap::IndexMap;

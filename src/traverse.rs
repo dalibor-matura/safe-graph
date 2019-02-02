@@ -1,6 +1,10 @@
 //! Graph traversing structs.
 
-use crate::edge::{CompactDirection, Direction::{self, Outgoing}, EdgeType};
+use crate::edge::{
+    CompactDirection,
+    Direction::{self, Outgoing},
+    EdgeType,
+};
 use crate::node::NodeTrait;
 use crate::Undirected;
 use std::marker::PhantomData;
