@@ -1,9 +1,8 @@
 //! Graph traversing structs.
 
-use crate::graph::edge::Direction::Outgoing;
-use crate::graph::edge::{CompactDirection, Direction, EdgeType};
-use crate::graph::node::NodeTrait;
-use crate::graph::Undirected;
+use crate::edge::{CompactDirection, Direction::{self, Outgoing}, EdgeType};
+use crate::node::NodeTrait;
+use crate::Undirected;
 use std::marker::PhantomData;
 use std::slice::Iter;
 

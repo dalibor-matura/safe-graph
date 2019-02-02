@@ -3,22 +3,16 @@
 //! The Graph and its components are inspired and mostly copied and refactored from `petgraph` crate
 //! https://crates.io/crates/petgraph.
 
-pub use self::node::NodeTrait;
+pub use crate::node::NodeTrait;
 
-use self::edge::{AllEdges, CompactDirection, Direction, EdgeType, Edges, IntoWeightedEdge};
-use self::node::Nodes;
-use self::traverse::{Neighbors, NeighborsDirected};
+use crate::edge::{AllEdges, CompactDirection, Direction, EdgeType, Edges, IntoWeightedEdge};
+use crate::node::Nodes;
+use crate::traverse::{Neighbors, NeighborsDirected};
 use indexmap::IndexMap;
 use std::fmt;
 use std::hash::Hash;
 use std::iter::FromIterator;
 use std::marker::PhantomData;
-
-#[macro_use]
-mod macros;
-pub mod edge;
-pub mod node;
-mod traverse;
 
 /// Marker type for a directed graph.
 #[derive(Copy, Debug)]
@@ -97,7 +91,7 @@ where
 
     /// Use their natural order to map the node pair (a, b) to a canonical edge id.
     #[inline]
-    fn edge_key(a: N, b: N) -> (N, N) {
+    pub fn edge_key(a: N, b: N) -> (N, N) {
         if Ty::is_directed() || a <= b {
             (a, b)
         } else {

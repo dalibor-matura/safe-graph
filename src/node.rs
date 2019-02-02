@@ -1,6 +1,6 @@
 //! Graph Node related constructs.
 
-use crate::graph::edge::CompactDirection;
+use crate::edge::CompactDirection;
 use indexmap::map::Keys;
 use std::fmt::Debug;
 use std::hash::Hash;
