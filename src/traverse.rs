@@ -86,9 +86,12 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::edge::CompactDirection;
-    use crate::graph::Directed;
-    use crate::traverse::Neighbors;
+    use crate::edge::{
+        CompactDirection,
+        Direction::{Incoming, Outgoing},
+    };
+    use crate::graph::{Directed, Undirected};
+    use crate::traverse::{Neighbors, NeighborsDirected};
     use std::marker::PhantomData;
 
     #[test]
@@ -98,5 +101,71 @@ mod tests {
 
         // Test `Neighbors` struct creation.
         let _n: Neighbors<u32, Directed> = Neighbors::new(iter, PhantomData);
+    }
+
+    #[test]
+    fn neighbors_next() {
+        let nodes: Vec<(u32, CompactDirection)> = vec![
+            (1, CompactDirection::Incoming),
+            (2, CompactDirection::Outgoing),
+            (3, CompactDirection::Outgoing),
+        ];
+        let iter = nodes.iter();
+
+        let mut neighbors_directed: Neighbors<u32, Directed> =
+            Neighbors::new(iter.clone(), PhantomData);
+
+        assert_eq!(neighbors_directed.next(), Some(2));
+        assert_eq!(neighbors_directed.next(), Some(3));
+        assert_eq!(neighbors_directed.next(), None);
+
+        let mut neighbors_undirected: Neighbors<u32, Undirected> =
+            Neighbors::new(iter.clone(), PhantomData);
+
+        assert_eq!(neighbors_undirected.next(), Some(1));
+        assert_eq!(neighbors_undirected.next(), Some(2));
+        assert_eq!(neighbors_undirected.next(), Some(3));
+        assert_eq!(neighbors_undirected.next(), None);
+    }
+
+    #[test]
+    fn neighbors_directed_new() {
+        let nodes: Vec<(u32, CompactDirection)> = vec![];
+        let iter = nodes.iter();
+
+        // Test `Neighbors` struct creation.
+        let _n: NeighborsDirected<u32, Directed> =
+            NeighborsDirected::new(iter, Incoming, PhantomData);
+    }
+
+    #[test]
+    fn neighbors_directed_next() {
+        let nodes: Vec<(u32, CompactDirection)> = vec![
+            (1, CompactDirection::Incoming),
+            (2, CompactDirection::Outgoing),
+            (3, CompactDirection::Outgoing),
+        ];
+        let iter = nodes.iter();
+
+        let mut neighbors_incomming: NeighborsDirected<u32, Directed> =
+            NeighborsDirected::new(iter.clone(), Incoming, PhantomData);
+
+        assert_eq!(neighbors_incomming.next(), Some(1));
+        assert_eq!(neighbors_incomming.next(), None);
+
+        let mut neighbors_outgoing: NeighborsDirected<u32, Directed> =
+            NeighborsDirected::new(iter.clone(), Outgoing, PhantomData);
+
+        assert_eq!(neighbors_outgoing.next(), Some(2));
+        assert_eq!(neighbors_outgoing.next(), Some(3));
+        assert_eq!(neighbors_outgoing.next(), None);
+
+        let mut neighbors_undirected: NeighborsDirected<u32, Undirected> =
+            NeighborsDirected::new(iter, Outgoing, PhantomData);
+
+        assert_eq!(neighbors_undirected.next(), Some(1));
+        assert_eq!(neighbors_undirected.next(), Some(2));
+        assert_eq!(neighbors_undirected.next(), Some(3));
+        assert_eq!(neighbors_undirected.next(), None);
     }
 }
