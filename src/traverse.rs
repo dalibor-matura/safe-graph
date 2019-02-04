@@ -83,3 +83,20 @@ where
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::edge::CompactDirection;
+    use crate::graph::Directed;
+    use crate::traverse::Neighbors;
+    use std::marker::PhantomData;
+
+    #[test]
+    fn neighbors_new() {
+        let nodes: Vec<(u32, CompactDirection)> = vec![];
+        let iter = nodes.iter();
+
+        // Test `Neighbors` struct creation.
+        let _n: Neighbors<u32, Directed> = Neighbors::new(iter, PhantomData);
+    }
+}

@@ -242,3 +242,76 @@ impl PartialEq<Direction> for CompactDirection {
         (*self as usize) == (*rhs as usize)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::edge::CompactDirection;
+    use crate::edge::{EdgeType, Edges};
+    use crate::graph::{Directed, Undirected};
+    use crate::traverse::Neighbors;
+    use indexmap::IndexMap;
+    use std::marker::PhantomData;
+
+    #[test]
+    fn edge_type_is_directed() {
+        assert_eq!(Directed::is_directed(), true);
+        assert_eq!(Undirected::is_directed(), false);
+    }
+
+    #[test]
+    fn edges_new() {
+        // Prepare arguments.
+        let from: u32 = 1;
+        let edges: IndexMap<(u32, u32), f32> = IndexMap::new();
+        let node_neighbors: Vec<(u32, CompactDirection)> = vec![];
+        let iter = node_neighbors.iter();
+        let neighbors: Neighbors<u32, Directed> = Neighbors::new(iter, PhantomData);
+
+        // Test `Edges` struct creation.
+        Edges::new(from, &edges, neighbors);
+    }
+
+    #[test]
+    fn edges_next() {
+        // Prepare arguments.
+        let from: u32 = 1;
+        let mut edges: IndexMap<(u32, u32), f32> = IndexMap::with_capacity(3);
+        edges.insert((2, 1), 2.0);
+        edges.insert((1, 3), 3.0);
+        edges.insert((1, 4), 4.0);
+        let node_neighbors: Vec<(u32, CompactDirection)> = vec![
+            (2, CompactDirection::Incoming),
+            (3, CompactDirection::Outgoing),
+            (4, CompactDirection::Outgoing),
+        ];
+        let neighbors: Neighbors<u32, Directed> =
+            Neighbors::new(node_neighbors.iter(), PhantomData);
+
+        // Construct edges from `1`.
+        // The edge (2, 1) is being filtered out as the edges are directed.
+        let mut edges = Edges::new(from, &edges, neighbors);
+
+        // Test all existing edges from `1`.
+        assert_eq!(edges.next(), Some((1, 3, &3.0)));
+        assert_eq!(edges.next(), Some((1, 4, &4.0)));
+
+        // Test the end of iteration.
+        assert_eq!(edges.next(), None);
+    }
+
+    #[test]
+    #[should_panic]
+    fn edges_next_unreachable() {
+        // Prepare arguments.
+        let from: u32 = 1;
+        let edges: IndexMap<(u32, u32), f32> = IndexMap::new();
+        let node_neighbors: Vec<(u32, CompactDirection)> = vec![(2, CompactDirection::Incoming)];
+        let neighbors: Neighbors<u32, Directed> =
+            Neighbors::new(node_neighbors.iter(), PhantomData);
+
+        // Construct edges.
+        let mut edges = Edges::new(from, &edges, neighbors);
+
+        assert_eq!(edges.next(), Some((1, 2, &0.0)));
+    }
+}
