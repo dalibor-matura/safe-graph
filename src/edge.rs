@@ -89,6 +89,8 @@ where
     Ty: EdgeType,
 {
     type Item = (N, N, &'a E);
+
+    /// Advances the iterator and returns the next value.
     fn next(&mut self) -> Option<Self::Item> {
         match self.inner.next() {
             None => None,
@@ -96,20 +98,58 @@ where
         }
     }
 
+    /// Returns the bounds on the remaining length of the iterator.
+    ///
+    /// Specifically, `size_hint()` returns a tuple where the first element
+    /// is the lower bound, and the second element is the upper bound.
+    ///
+    /// The second half of the tuple that is returned is an [`Option`]`<`[`usize`]`>`.
+    /// A [`None`] here means that either there is no known upper bound, or the
+    /// upper bound is larger than [`usize`].
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use indexmap::IndexMap;
+    /// use safe_graph::edge::AllEdges;
+    /// use safe_graph::graph::Directed;
+    /// use std::marker::PhantomData;
+    ///
+    /// let edges = IndexMap::new();
+    /// let all_edges: AllEdges<u32, f32, Directed> = AllEdges::new(edges.iter(), PhantomData);
+    ///
+    /// assert_eq!(all_edges.size_hint(), (0, Some(0)));
+    /// ```
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.inner.size_hint()
     }
 
+    /// Consumes the iterator, counting the number of iterations and returning it.
     fn count(self) -> usize {
         self.inner.count()
     }
 
+    /// Returns the `n`th element of the iterator.
+    ///
+    /// Like most indexing operations, the count starts from zero, so `nth(0)`
+    /// returns the first value, `nth(1)` the second, and so on.
+    ///
+    /// Note that all preceding elements, as well as the returned element, will be
+    /// consumed from the iterator. That means that the preceding elements will be
+    /// discarded, and also that calling `nth(0)` multiple times on the same iterator
+    /// will return different elements.
+    ///
+    /// `nth()` will return [`None`] if `n` is greater than or equal to the length of the
+    /// iterator.
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
         self.inner
             .nth(n)
             .map(|(&(n1, n2), weight)| (n1, n2, weight))
     }
 
+    /// Consumes the iterator, returning the last element.
     fn last(self) -> Option<Self::Item> {
         self.inner
             .last()
@@ -245,8 +285,7 @@ impl PartialEq<Direction> for CompactDirection {
 
 #[cfg(test)]
 mod tests {
-    use crate::edge::CompactDirection;
-    use crate::edge::{EdgeType, Edges};
+    use crate::edge::{AllEdges, CompactDirection, EdgeType, Edges};
     use crate::graph::{Directed, Undirected};
     use crate::traverse::Neighbors;
     use indexmap::IndexMap;
@@ -313,5 +352,86 @@ mod tests {
         let mut edges = Edges::new(from, &edges, neighbors);
 
         assert_eq!(edges.next(), Some((1, 2, &0.0)));
+    }
+
+    #[test]
+    fn all_edges_new() {
+        let _all_edges: AllEdges<u32, f32, Directed> =
+            AllEdges::new(IndexMap::new().iter(), PhantomData);
+    }
+
+    #[test]
+    fn all_edges_next() {
+        let mut edges: IndexMap<(u32, u32), f32> = IndexMap::with_capacity(3);
+        edges.insert((2, 1), 2.0);
+        edges.insert((1, 3), 3.0);
+        edges.insert((1, 4), 4.0);
+
+        let mut all_edges: AllEdges<u32, f32, Directed> = AllEdges::new(edges.iter(), PhantomData);
+
+        assert_eq!(all_edges.next(), Some((2, 1, &2.0)));
+        assert_eq!(all_edges.next(), Some((1, 3, &3.0)));
+        assert_eq!(all_edges.next(), Some((1, 4, &4.0)));
+        assert_eq!(all_edges.next(), None);
+    }
+
+    #[test]
+    fn all_edges_size_hint() {
+        let mut edges: IndexMap<(u32, u32), f32> = IndexMap::with_capacity(3);
+        edges.insert((2, 1), 2.0);
+        edges.insert((1, 3), 3.0);
+        edges.insert((1, 4), 4.0);
+        let mut all_edges: AllEdges<u32, f32, Directed> = AllEdges::new(edges.iter(), PhantomData);
+
+        assert_eq!(all_edges.size_hint(), (3, Some(3)));
+
+        // Lower the length of the iterator.
+        all_edges.next();
+
+        assert_eq!(all_edges.size_hint(), (2, Some(2)));
+
+        // Lower the length of the iterator.
+        all_edges.next();
+
+        assert_eq!(all_edges.size_hint(), (1, Some(1)));
+
+        // Lower the length of the iterator.
+        all_edges.next();
+
+        assert_eq!(all_edges.size_hint(), (0, Some(0)));
+    }
+
+    #[test]
+    fn all_edges_count() {
+        let mut edges: IndexMap<(u32, u32), f32> = IndexMap::with_capacity(3);
+        edges.insert((2, 1), 2.0);
+        edges.insert((1, 3), 3.0);
+        edges.insert((1, 4), 4.0);
+        let all_edges: AllEdges<u32, f32, Directed> = AllEdges::new(edges.iter(), PhantomData);
+
+        assert_eq!(all_edges.count(), 3);
+    }
+
+    #[test]
+    fn all_edges_nth() {
+        let mut edges: IndexMap<(u32, u32), f32> = IndexMap::with_capacity(3);
+        edges.insert((2, 1), 2.0);
+        edges.insert((1, 3), 3.0);
+        edges.insert((1, 4), 4.0);
+        let mut all_edges: AllEdges<u32, f32, Directed> = AllEdges::new(edges.iter(), PhantomData);
+
+        assert_eq!(all_edges.nth(2), Some((1, 4, &4.0)));
+        assert_eq!(all_edges.nth(0), None);
+    }
+
+    #[test]
+    fn all_edges_last() {
+        let mut edges: IndexMap<(u32, u32), f32> = IndexMap::with_capacity(3);
+        edges.insert((2, 1), 2.0);
+        edges.insert((1, 3), 3.0);
+        edges.insert((1, 4), 4.0);
+        let all_edges: AllEdges<u32, f32, Directed> = AllEdges::new(edges.iter(), PhantomData);
+
+        assert_eq!(all_edges.last(), Some((1, 4, &4.0)));
     }
 }
