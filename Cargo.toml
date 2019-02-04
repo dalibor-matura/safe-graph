@@ -1,6 +1,6 @@
 [package]
 name = "safe-graph"
-version = "0.1.4"
+version = "0.1.5"
 authors = ["Dalibor Matura <dalibor.matura@gmail.com>"]
 edition = "2018"
 description = "Graph implementation (refactored version of GraphMap from popular crate petgraph)."
