@@ -22,7 +22,7 @@ before_cache:
   - cargo prune
   - |
     if [[ "$TRAVIS_RUST_VERSION" == nightly ]]; then
-      RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin -f
+      RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin
     fi
 before_script:
   - |
