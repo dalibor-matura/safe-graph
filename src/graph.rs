@@ -571,6 +571,18 @@ mod tests {
     }
 
     #[test]
+    fn edge_weight_mut() {
+        let mut graph: Graph<&str, f32> = Graph::new();
+
+        // Add one edge.
+        let mut edge_weight = 2.4;
+        graph.add_edge("a", "b", edge_weight);
+
+        // Test edge weight.
+        assert_eq!(graph.edge_weight_mut("a", "b"), Some(&mut edge_weight));
+    }
+
+    #[test]
     fn edge_weight_with_nodes_as_tuples() {
         let mut graph: Graph<(&str, &str), f32> = Graph::new();
 
@@ -668,57 +680,6 @@ mod tests {
     }
 
     #[test]
-    fn contains_neighbors() {
-        let mut graph: Graph<u32, f32> = Graph::with_capacity(3, 3);
-        graph.add_edge(1, 2, 3.0);
-        graph.add_edge(2, 3, 5.0);
-        graph.add_edge(1, 3, 4.0);
-
-        let mut neighbors_1 = graph.neighbors(1);
-
-        assert_eq!(neighbors_1.next(), Some(2));
-        assert_eq!(neighbors_1.next(), Some(3));
-        assert_eq!(neighbors_1.next(), None);
-
-        let mut neighbors_2 = graph.neighbors(2);
-
-        assert_eq!(neighbors_2.next(), Some(3));
-        assert_eq!(neighbors_2.next(), None);
-
-        let mut neighbors_3 = graph.neighbors(3);
-
-        assert_eq!(neighbors_3.next(), None);
-    }
-
-    #[test]
-    fn contains_neighbors_directed() {
-        let mut graph: Graph<u32, f32> = Graph::with_capacity(3, 3);
-        graph.add_edge(1, 2, 3.0);
-        graph.add_edge(2, 3, 5.0);
-        graph.add_edge(1, 3, 4.0);
-
-        let mut neighbors_1_incoming = graph.neighbors_directed(1, Incoming);
-
-        assert_eq!(neighbors_1_incoming.next(), None);
-
-        let mut neighbors_1_outgoing = graph.neighbors_directed(1, Outgoing);
-
-        assert_eq!(neighbors_1_outgoing.next(), Some(2));
-        assert_eq!(neighbors_1_outgoing.next(), Some(3));
-        assert_eq!(neighbors_1_outgoing.next(), None);
-
-        let mut neighbors_2_incoming = graph.neighbors_directed(2, Incoming);
-
-        assert_eq!(neighbors_2_incoming.next(), Some(1));
-        assert_eq!(neighbors_2_incoming.next(), None);
-
-        let mut neighbors_2 = graph.neighbors_directed(2, Outgoing);
-
-        assert_eq!(neighbors_2.next(), Some(3));
-        assert_eq!(neighbors_2.next(), None);
-    }
-
-    #[test]
     fn edges() {
         let mut graph: Graph<u32, f32> = Graph::with_capacity(3, 3);
         graph.add_edge(1, 2, 3.0);
@@ -730,5 +691,86 @@ mod tests {
         assert_eq!(edges.next(), Some((1, 2, &3.0)));
         assert_eq!(edges.next(), Some((1, 3, &4.0)));
         assert_eq!(edges.next(), None);
+    }
+
+    #[test]
+    fn all_edges() {
+        let mut graph: Graph<u32, f32> = Graph::with_capacity(3, 3);
+        graph.add_edge(1, 2, 3.0);
+        graph.add_edge(2, 3, 5.0);
+        graph.add_edge(1, 3, 4.0);
+
+        let mut edges = graph.all_edges();
+
+        assert_eq!(edges.next(), Some((1, 2, &3.0)));
+        assert_eq!(edges.next(), Some((2, 3, &5.0)));
+        assert_eq!(edges.next(), Some((1, 3, &4.0)));
+        assert_eq!(edges.next(), None);
+    }
+
+    #[test]
+    fn neighbors() {
+        let mut graph: Graph<u32, f32> = Graph::with_capacity(3, 3);
+        graph.add_edge(1, 2, 3.0);
+        graph.add_edge(2, 3, 5.0);
+        graph.add_edge(1, 3, 4.0);
+
+        // Test with existing node.
+        let mut neighbors_1 = graph.neighbors(1);
+
+        assert_eq!(neighbors_1.next(), Some(2));
+        assert_eq!(neighbors_1.next(), Some(3));
+        assert_eq!(neighbors_1.next(), None);
+
+        // Test with existing node.
+        let mut neighbors_2 = graph.neighbors(2);
+
+        assert_eq!(neighbors_2.next(), Some(3));
+        assert_eq!(neighbors_2.next(), None);
+
+        // Test with existing node.
+        let mut neighbors_3 = graph.neighbors(3);
+
+        assert_eq!(neighbors_3.next(), None);
+
+        // Test with none-existing node.
+        let mut neighbors_4 = graph.neighbors(4);
+        assert_eq!(neighbors_4.next(), None);
+    }
+
+    #[test]
+    fn neighbors_directed() {
+        let mut graph: Graph<u32, f32> = Graph::with_capacity(3, 3);
+        graph.add_edge(1, 2, 3.0);
+        graph.add_edge(2, 3, 5.0);
+        graph.add_edge(1, 3, 4.0);
+
+        // Test with none-existing node.
+        let mut neighbors_1_incoming = graph.neighbors_directed(1, Incoming);
+
+        assert_eq!(neighbors_1_incoming.next(), None);
+
+        // Test with none-existing node.
+        let mut neighbors_1_outgoing = graph.neighbors_directed(1, Outgoing);
+
+        assert_eq!(neighbors_1_outgoing.next(), Some(2));
+        assert_eq!(neighbors_1_outgoing.next(), Some(3));
+        assert_eq!(neighbors_1_outgoing.next(), None);
+
+        // Test with none-existing node.
+        let mut neighbors_2_incoming = graph.neighbors_directed(2, Incoming);
+
+        assert_eq!(neighbors_2_incoming.next(), Some(1));
+        assert_eq!(neighbors_2_incoming.next(), None);
+
+        // Test with none-existing node.
+        let mut neighbors_2_outgoing = graph.neighbors_directed(2, Outgoing);
+
+        assert_eq!(neighbors_2_outgoing.next(), Some(3));
+        assert_eq!(neighbors_2_outgoing.next(), None);
+
+        // Test with none-existing node.
+        let mut neighbors_4 = graph.neighbors_directed(4, Incoming);
+        assert_eq!(neighbors_4.next(), None);
     }
 }
