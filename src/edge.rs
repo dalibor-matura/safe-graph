@@ -163,6 +163,9 @@ where
     E: 'a,
     Ty: EdgeType,
 {
+    /// Removes and returns an element from the end of the iterator.
+    ///
+    /// Returns `None` when there are no more elements.
     fn next_back(&mut self) -> Option<Self::Item> {
         self.inner
             .next_back()
@@ -170,15 +173,15 @@ where
     }
 }
 
-/// Convert an element like `(i, j)` or `(i, j, w)` into
-/// a triple of source, target, edge weight.
+/// Convert an element like `(i, j)` or `(i, j, w)` into a triple of source, target, edge weight.
 ///
-/// For `Graph::from_edges` and `Graph::from_edges`.
+/// For `Graph::from_edges`.
 pub trait IntoWeightedEdge<E> {
     type NodeId;
     fn into_weighted_edge(self) -> (Self::NodeId, Self::NodeId, E);
 }
 
+/// Convert an element like `(i, j)` into a triple of source, target, edge weight.
 impl<Ix, E> IntoWeightedEdge<E> for (Ix, Ix)
 where
     E: Default,
@@ -191,36 +194,52 @@ where
     }
 }
 
+/// Convert an element like `(i, j, w)` into a triple of source, target, edge weight.
+///
+/// Meaning do no change, just return.
 impl<Ix, E> IntoWeightedEdge<E> for (Ix, Ix, E) {
     type NodeId = Ix;
+
     fn into_weighted_edge(self) -> (Ix, Ix, E) {
         self
     }
 }
 
+/// Convert an element like `(i, j, w)` into a triple of source, target, edge weight.
+///
+/// Clone the edge weight from the reference.
 impl<'a, Ix, E> IntoWeightedEdge<E> for (Ix, Ix, &'a E)
 where
     E: Clone,
 {
     type NodeId = Ix;
+
     fn into_weighted_edge(self) -> (Ix, Ix, E) {
         let (a, b, c) = self;
         (a, b, c.clone())
     }
 }
 
+/// Convert an element like `&(i, j)` into a triple of source, target, edge weight.
+///
+/// See that the element `&(i, j)` is a reference.
 impl<'a, Ix, E> IntoWeightedEdge<E> for &'a (Ix, Ix)
 where
     Ix: Copy,
     E: Default,
 {
     type NodeId = Ix;
+
     fn into_weighted_edge(self) -> (Ix, Ix, E) {
         let (s, t) = *self;
         (s, t, E::default())
     }
 }
 
+/// Convert an element like `&(i, j, w)` into a triple of source, target, edge weight.
+///
+/// Clone the edge weight from the reference.
+/// See that the element `&(i, j, w)` is a reference.
 impl<'a, Ix, E> IntoWeightedEdge<E> for &'a (Ix, Ix, E)
 where
     Ix: Copy,
@@ -261,7 +280,7 @@ impl Direction {
     }
 }
 
-// Non-repr(usize) version of Direction.
+/// Non-repr(usize) version of `Direction`.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum CompactDirection {
     Outgoing,
@@ -285,10 +304,11 @@ impl PartialEq<Direction> for CompactDirection {
 
 #[cfg(test)]
 mod tests {
-    use crate::edge::{AllEdges, CompactDirection, EdgeType, Edges};
+    use crate::edge::{AllEdges, CompactDirection, Direction, EdgeType, Edges, IntoWeightedEdge};
     use crate::graph::{Directed, Undirected};
     use crate::traverse::Neighbors;
     use indexmap::IndexMap;
+    use std::cmp::PartialEq;
     use std::marker::PhantomData;
 
     #[test]
@@ -433,5 +453,78 @@ mod tests {
         let all_edges: AllEdges<u32, f32, Directed> = AllEdges::new(edges.iter(), PhantomData);
 
         assert_eq!(all_edges.last(), Some((1, 4, &4.0)));
+    }
+
+    #[test]
+    fn all_edges_next_back() {
+        let mut edges: IndexMap<(u32, u32), f32> = IndexMap::with_capacity(3);
+        edges.insert((2, 1), 2.0);
+        edges.insert((1, 3), 3.0);
+        edges.insert((1, 4), 4.0);
+
+        let mut all_edges: AllEdges<u32, f32, Directed> = AllEdges::new(edges.iter(), PhantomData);
+
+        // Iterate backwards.
+        assert_eq!(all_edges.next_back(), Some((1, 4, &4.0)));
+        assert_eq!(all_edges.next_back(), Some((1, 3, &3.0)));
+        assert_eq!(all_edges.next_back(), Some((2, 1, &2.0)));
+        assert_eq!(all_edges.next_back(), None);
+    }
+
+    #[test]
+    fn into_weighted_edge() {
+        // Test with tuple.
+        assert_eq!((1, 2).into_weighted_edge(), (1, 2, f32::default()));
+
+        // Test with triple.
+        assert_eq!((1, 2, 3).into_weighted_edge(), (1, 2, 3));
+
+        // Test with triple having edge weight as reference.
+        assert_eq!((1, 2, &3).into_weighted_edge(), (1, 2, 3));
+
+        // Test with tuple as reference.
+        assert_eq!((&(1, 2)).into_weighted_edge(), (1, 2, f32::default()));
+
+        // Test with triple as reference.
+        assert_eq!((&(1, 2, 3)).into_weighted_edge(), (1, 2, 3));
+    }
+
+    #[test]
+    fn direction_opposite() {
+        assert_eq!(Direction::Incoming.opposite(), Direction::Outgoing);
+        assert_eq!(Direction::Outgoing.opposite(), Direction::Incoming);
+    }
+
+    #[test]
+    fn direction_index() {
+        assert_eq!(Direction::Incoming.index(), Direction::Incoming as usize);
+        assert_eq!(Direction::Outgoing.index(), Direction::Outgoing as usize);
+    }
+
+    #[test]
+    fn direction_clone() {
+        assert_eq!(Direction::Incoming.clone(), Direction::Incoming);
+        assert_eq!(Direction::Outgoing.clone(), Direction::Outgoing);
+    }
+
+    #[test]
+    fn compact_direction_from() {
+        assert_eq!(
+            CompactDirection::from(Direction::Incoming),
+            CompactDirection::Incoming
+        );
+        assert_eq!(
+            CompactDirection::from(Direction::Outgoing),
+            CompactDirection::Outgoing
+        );
+    }
+
+    #[test]
+    fn compact_direction_partial_equal_with_direction() {
+        assert_eq!(CompactDirection::Incoming.eq(&Direction::Incoming), true);
+        assert_eq!(CompactDirection::Incoming.eq(&Direction::Outgoing), false);
+
+        assert_eq!(CompactDirection::Outgoing.eq(&Direction::Outgoing), true);
+        assert_eq!(CompactDirection::Outgoing.eq(&Direction::Incoming), false);
     }
 }
